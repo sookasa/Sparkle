@@ -27,16 +27,12 @@ static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authoriza
 {
 	sig_t oldSigChildHandler = signal(SIGCHLD, SIG_DFL);
 	BOOL returnValue = YES;
-
-#ifdef SPARKLE_PROJECT
+	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     /* AuthorizationExecuteWithPrivileges used to support 10.4+; should be replaced with XPC or external process */
-    if (AuthorizationExecuteWithPrivileges(authorization, executablePath, options, (char* const*)arguments, NULL) == errAuthorizationSuccess)
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	if (AuthorizationExecuteWithPrivileges(authorization, executablePath, options, (char* const*)arguments, NULL) == errAuthorizationSuccess)
-#pragma GCC diagnostic pop
-#endif
+#pragma clang diagnostic pop
 	{
 		int status = 0;
 		pid_t pid = wait(&status);
