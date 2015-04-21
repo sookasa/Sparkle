@@ -282,6 +282,7 @@
             return NO;
         }
     } else {
+#ifdef SPARKLE_PROJECT
         BOOL hostIsCodeSigned = [SUCodeSigningVerifier hostApplicationIsCodeSigned];
 
         NSString *dsaStatus = newPublicDSAKey ? @"has a new DSA key that doesn't match the previous one" : (publicDSAKey ? @"removes the DSA key" : @"isn't signed with a DSA key");
@@ -296,6 +297,10 @@
             SULog(@"The update archive %@, and the app is signed with a new Code Signing identity that doesn't match code signing of the original app: %@. At least one method of signature verification must be valid. The update will be rejected.", dsaStatus, error);
             return NO;
         }
+#else
+        //TODO: support proper code signature
+        return YES;
+#endif
     }
 
     return YES;
