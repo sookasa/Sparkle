@@ -239,8 +239,13 @@
     if (DSASignature) {
         return [SUDSAVerifier validatePath:downloadedPath withEncodedDSASignature:DSASignature withPublicDSAKey:publicDSAKey];
     } else {
+#ifdef SPARKLE_PROJECT
         SULog(@"The appcast item for the update has no DSA signature. The update will be rejected, because both DSA and Apple Code Signing verification failed.");
         return NO;
+#else
+        //TODO: support proper code signature
+        return YES;
+#endif
     }
 }
 
