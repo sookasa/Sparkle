@@ -376,7 +376,6 @@
 		55C14BF2136EF26100649790 /* da */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = da; path = da.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
 		55C14BF3136EF26100649790 /* de */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = de; path = de.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
 		55C14BF4136EF26100649790 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
-		55C14BF5136EF26100649790 /* es */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = es; path = es.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
 		55C14BF6136EF26100649790 /* fr */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = fr; path = fr.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
 		55C14BF7136EF26100649790 /* is */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = is; path = is.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
 		55C14BF8136EF26100649790 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/SUUpdateAlert.xib; sourceTree = "<group>"; };
@@ -1604,7 +1603,6 @@
 				55C14BF3136EF26100649790 /* de */,
 				555CF29C196C52460000B31E /* el */,
 				55C14BF4136EF26100649790 /* en */,
-				55C14BF5136EF26100649790 /* es */,
 				55C14BF6136EF26100649790 /* fr */,
 				55C14BF7136EF26100649790 /* is */,
 				55C14BF8136EF26100649790 /* it */,
