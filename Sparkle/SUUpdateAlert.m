@@ -171,7 +171,11 @@
 
 - (BOOL)allowsAutomaticUpdates
 {
+#ifdef SPARKLE_PROJECT
     BOOL allowAutoUpdates = YES; // Defaults to YES.
+#else
+    BOOL allowAutoUpdates = NO; // Defaults to NO (so user won't get UI toggle for this option).
+#endif
     if ([self.host objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey])
         allowAutoUpdates = [self.host boolForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey];
 
