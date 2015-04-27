@@ -44,10 +44,17 @@
 
 - (void)awakeFromNib
 {
+#ifdef SPARKLE_PROJECT
     if ([self.host isBackgroundApplication]) {
         [[self window] setLevel:NSFloatingWindowLevel];
     }
-
+#else
+    // when installing a pkg, having the status window floating is confusing
+    // where user doesn't realize the he needs to click "next" in the installer
+    // window, commenting out this line, lets the installer window be more
+    // visible to the user
+#endif
+    
     [[self window] center];
     [[self window] setFrameAutosaveName:@"SUStatusFrame"];
     [self.progressBar setUsesThreadedAnimation:YES];
