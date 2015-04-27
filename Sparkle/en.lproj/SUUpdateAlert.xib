@@ -187,7 +187,7 @@ DQ
                             <action selector="installUpdate:" target="-2" id="77"/>
                         </connections>
                     </button>
-                    <button translatesAutoresizingMaskIntoConstraints="NO" id="117">
+                    <button hidden="YES" translatesAutoresizingMaskIntoConstraints="NO" id="117">
                         <rect key="frame" x="106" y="49" width="495" height="20"/>
                         <constraints>
                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="28" id="0AI-ue-a0r"/>
