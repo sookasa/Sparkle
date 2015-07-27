@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14F25a" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <development version="5100" identifier="xcode"/>
@@ -27,7 +27,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="998" y="500" width="620" height="370"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1057"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1080" height="1897"/>
             <value key="minSize" type="size" width="550" height="150"/>
             <value key="maxSize" type="size" width="700" height="600"/>
             <view key="contentView" id="6">
@@ -117,7 +117,7 @@
                                     </binding>
                                 </connections>
                             </box>
-                            <textField verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="17">
+                            <textField verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="17">
                                 <rect key="frame" x="-2" y="220" width="89" height="14"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="100" constant="100" id="gkn-FW-9aC"/>
@@ -161,7 +161,7 @@ Gw
                             <action selector="remindMeLater:" target="-2" id="34"/>
                         </connections>
                     </button>
-                    <button verticalHuggingPriority="750" horizontalCompressionResistancePriority="998" translatesAutoresizingMaskIntoConstraints="NO" id="23">
+                    <button hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="998" translatesAutoresizingMaskIntoConstraints="NO" id="23">
                         <rect key="frame" x="103" y="12" width="146" height="32"/>
                         <buttonCell key="cell" type="push" title="Skip This Version" bezelStyle="rounded" alignment="center" borderStyle="border" inset="2" id="172">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
