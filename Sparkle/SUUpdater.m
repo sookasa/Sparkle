@@ -29,6 +29,8 @@ NSString *const SUUpdaterAppcastNotificationKey = @"SUUpdaterAppCastNotification
 
 @interface SUUpdater () <SUUpdatePermissionPromptDelegate>
 @property (strong) NSTimer *checkTimer;
+@property (strong) NSBundle *sparkleBundle;
+
 - (instancetype)initForBundle:(NSBundle *)bundle;
 - (void)startUpdateCycle;
 - (void)checkForUpdatesWithDriver:(SUUpdateDriver *)updateDriver;
@@ -54,6 +56,7 @@ NSString *const SUUpdaterAppcastNotificationKey = @"SUUpdaterAppCastNotification
 @synthesize httpHeaders;
 @synthesize driver;
 @synthesize host;
+@synthesize sparkleBundle;
 
 static NSMutableDictionary *sharedUpdaters = nil;
 static NSString *const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObservationContext";
@@ -80,6 +83,12 @@ static NSString *const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaults
     self = [super init];
     if (bundle == nil) bundle = [NSBundle mainBundle];
 
+    self.sparkleBundle = [NSBundle bundleForClass:[self class]];
+    if (!self.sparkleBundle) {
+        SULog(@"Error: SUUpdater can't find Sparkle.framework it belongs to");
+        return nil;
+    }
+
     // Register as observer straight away to avoid exceptions on -dealloc when -unregisterAsObserver is called:
     if (self) {
         [self registerAsObserver];
@@ -102,14 +111,23 @@ static NSString *const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaults
         BOOL hasPublicDSAKey = [host publicDSAKey] != nil;
         BOOL isMainBundle = [bundle isEqualTo:[NSBundle mainBundle]];
         BOOL hostIsCodeSigned = [SUCodeSigningVerifier hostApplicationIsCodeSigned];
+        BOOL servingOverHttps = [[[[self feedURL] scheme] lowercaseString] isEqualToString:@"https"];
         if (!isMainBundle && !hasPublicDSAKey) {
             [self notifyWillShowModalAlert];
-            NSRunAlertPanel(@"Insecure update error!", @"For security reasons, you need to sign your updates with a DSA key. See Sparkle's documentation for more information.", @"OK", nil, nil);
+            NSAlert *alert = [[NSAlert alloc] init];
+            alert.messageText = @"Insecure update error!";
+            alert.informativeText = @"For security reasons, you need to sign your updates with a DSA key. See Sparkle's documentation for more information.";
+            [alert runModal];
             [self notifyDidShowModalAlert];
         } else if (isMainBundle && !(hasPublicDSAKey || hostIsCodeSigned)) {
             [self notifyWillShowModalAlert];
-            NSRunAlertPanel(@"Insecure update error!", @"For security reasons, you need to code sign your application or sign your updates with a DSA key. See Sparkle's documentation for more information.", @"OK", nil, nil);
+            NSAlert *alert = [[NSAlert alloc] init];
+            alert.messageText = @"Insecure update error!";
+            alert.informativeText = @"For security reasons, you need to code sign your application or sign your updates with a DSA key. See Sparkle's documentation for more information.";
+            [alert runModal];
             [self notifyDidShowModalAlert];
+        } else if (isMainBundle && !hasPublicDSAKey && !servingOverHttps) {
+            SULog(@"WARNING: Serving updates over http without signing them with a DSA key is deprecated and may not be possible in a future release. Please serve your updates over https, or sign them with a DSA key, or do both. See Sparkle's documentation for more information.");
         }
 
         // This runs the permission prompt if needed, but never before the app has finished launching because the runloop won't run before that
@@ -459,7 +477,7 @@ static NSString *const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaults
         return customUserAgentString;
     }
 
-    NSString *version = [[NSBundle bundleWithIdentifier:SUBundleIdentifier] objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey];
+    NSString *version = [self.sparkleBundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey];
     NSString *userAgent = [NSString stringWithFormat:@"%@/%@ Sparkle/%@", [self.host name], [self.host displayVersion], version ? version : @"?"];
     NSData *cleanedAgent = [userAgent dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     return [[NSString alloc] initWithData:cleanedAgent encoding:NSASCIIStringEncoding];

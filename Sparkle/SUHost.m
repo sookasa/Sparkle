@@ -13,11 +13,6 @@
 #import "SULog.h"
 
 #if __MAC_OS_X_VERSION_MAX_ALLOWED < 101000
-typedef struct {
-    NSInteger majorVersion;
-    NSInteger minorVersion;
-    NSInteger patchVersion;
-} NSOperatingSystemVersion;
 @interface NSProcessInfo ()
 - (NSOperatingSystemVersion)operatingSystemVersion;
 @end
@@ -41,7 +36,7 @@ typedef struct {
 {
 	if ((self = [super init]))
 	{
-		if (aBundle == nil) aBundle = [NSBundle mainBundle];
+        SUParameterAssert(aBundle);
         self.bundle = aBundle;
         if (![self.bundle bundleIdentifier]) {
             SULog(@"Error: the bundle being updated at %@ has no %@! This will cause preference read/write to not work properly.", self.bundle, kCFBundleIdentifierKey);
@@ -53,7 +48,8 @@ typedef struct {
         }
 
         // If we're using the main bundle's defaults we'll use the standard user defaults mechanism, otherwise we have to get CF-y.
-        usesStandardUserDefaults = !self.defaultsDomain || [self.defaultsDomain isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
+        NSString *mainBundleIdentifier = NSBundle.mainBundle.bundleIdentifier;
+        usesStandardUserDefaults = !self.defaultsDomain || [self.defaultsDomain isEqualToString:mainBundleIdentifier];
     }
     return self;
 }
@@ -90,17 +86,18 @@ typedef struct {
 
 - (NSString *)installationPath
 {
-    if ([[[NSBundle bundleWithIdentifier:SUBundleIdentifier] infoDictionary][SUNormalizeInstalledApplicationNameKey] boolValue]) {
+    if (SPARKLE_NORMALIZE_INSTALLED_APPLICATION_NAME) {
         // We'll install to "#{CFBundleName}.app", but only if that path doesn't already exist. If we're "Foo 4.2.app," and there's a "Foo.app" in this directory, we don't want to overwrite it! But if there's no "Foo.app," we'll take that name.
         NSString *normalizedAppPath = [[[self.bundle bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [self.bundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleNameKey], [[self.bundle bundlePath] pathExtension]]];
-        if (![[NSFileManager defaultManager] fileExistsAtPath:[[[self.bundle bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [self.bundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleNameKey], [[self.bundle bundlePath] pathExtension]]]]) {
+
+        if (![[NSFileManager defaultManager] fileExistsAtPath:normalizedAppPath]) {
             return normalizedAppPath;
         }
     }
     return [self.bundle bundlePath];
 }
 
-- (NSString *)name
+- (NSString *__nonnull)name
 {
     NSString *name;
 
@@ -117,7 +114,7 @@ typedef struct {
     return [[[NSFileManager defaultManager] displayNameAtPath:[self.bundle bundlePath]] stringByDeletingPathExtension];
 }
 
-- (NSString *)version
+- (NSString *__nonnull)version
 {
     NSString *version = [self.bundle objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey];
     if (!version || [version isEqualToString:@""])
@@ -125,7 +122,7 @@ typedef struct {
     return version;
 }
 
-- (NSString *)displayVersion
+- (NSString *__nonnull)displayVersion
 {
     NSString *shortVersionString = [self.bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     if (shortVersionString)
@@ -134,7 +131,7 @@ typedef struct {
         return [self version]; // Fall back on the normal version string.
 }
 
-- (NSImage *)icon
+- (NSImage *__nonnull)icon
 {
     // Cache the application icon.
     NSString *iconPath = [self.bundle pathForResource:[self.bundle objectForInfoDictionaryKey:@"CFBundleIconFile"] ofType:@"icns"];
@@ -151,7 +148,7 @@ typedef struct {
     if (!icon) {
         BOOL isMainBundle = (self.bundle == [NSBundle mainBundle]);
 
-        NSString *fileType = isMainBundle ? (NSString *)kUTTypeApplication : (NSString *)kUTTypeBundle;
+        NSString *fileType = isMainBundle ? (__bridge NSString *)kUTTypeApplication : (__bridge NSString *)kUTTypeBundle;
         icon = [[NSWorkspace sharedWorkspace] iconForFileType:fileType];
     }
     return icon;
@@ -161,7 +158,7 @@ typedef struct {
 {
     struct statfs statfs_info;
     statfs([[self.bundle bundlePath] fileSystemRepresentation], &statfs_info);
-    return (statfs_info.f_flags & MNT_RDONLY);
+    return (statfs_info.f_flags & MNT_RDONLY) != 0;
 }
 
 - (BOOL)isBackgroundApplication
@@ -169,17 +166,25 @@ typedef struct {
     return ([[NSApplication sharedApplication] activationPolicy] == NSApplicationActivationPolicyAccessory);
 }
 
-- (NSString *)publicDSAKey
+- (NSString *__nullable)publicDSAKey
 {
     // Maybe the key is just a string in the Info.plist.
     NSString *key = [self.bundle objectForInfoDictionaryKey:SUPublicDSAKeyKey];
-	if (key) { return key; }
+	if (key) {
+        return key;
+    }
 
     // More likely, we've got a reference to a Resources file by filename:
     NSString *keyFilename = [self objectForInfoDictionaryKey:SUPublicDSAKeyFileKey];
-	if (!keyFilename) { return nil; }
-    NSError *ignoreErr = nil;
-    return [NSString stringWithContentsOfFile:[self.bundle pathForResource:keyFilename ofType:nil] encoding:NSASCIIStringEncoding error:&ignoreErr];
+	if (!keyFilename) {
+        return nil;
+    }
+
+    NSString *keyPath = [self.bundle pathForResource:keyFilename ofType:nil];
+    if (!keyPath) {
+        return nil;
+    }
+    return [NSString stringWithContentsOfFile:keyPath encoding:NSASCIIStringEncoding error:nil];
 }
 
 - (NSArray *)systemProfile
@@ -267,7 +272,7 @@ typedef struct {
     return [self objectForUserDefaultsKey:key] ? [self boolForUserDefaultsKey:key] : [self boolForInfoDictionaryKey:key];
 }
 
-+ (NSString *)systemVersionString
++ (NSOperatingSystemVersion)operatingSystemVersion
 {
 #if __MAC_OS_X_VERSION_MIN_REQUIRED < 1090 // Present in 10.9 despite NS_AVAILABLE's claims
 #pragma clang diagnostic push
@@ -276,11 +281,21 @@ typedef struct {
     if (![NSProcessInfo instancesRespondToSelector:@selector(operatingSystemVersion)])
 #pragma clang diagnostic pop
     {
+        NSOperatingSystemVersion version = { 0, 0, 0 };
         NSURL *coreServices = [[NSFileManager defaultManager] URLForDirectory:NSCoreServiceDirectory inDomain:NSSystemDomainMask appropriateForURL:nil create:NO error:nil];
-        return [NSDictionary dictionaryWithContentsOfURL:[coreServices URLByAppendingPathComponent:@"SystemVersion.plist"]][@"ProductVersion"];
+        NSArray *components = [[NSDictionary dictionaryWithContentsOfURL:[coreServices URLByAppendingPathComponent:@"SystemVersion.plist"]][@"ProductVersion"] componentsSeparatedByString:@"."];
+        version.majorVersion = components.count > 0 ? [components[0] integerValue] : 0;
+        version.minorVersion = components.count > 1 ? [components[1] integerValue] : 0;
+        version.patchVersion = components.count > 2 ? [components[2] integerValue] : 0;
+        return version;
     }
 #endif
-    NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    return [[NSProcessInfo processInfo] operatingSystemVersion];
+}
+
++ (NSString *)systemVersionString
+{
+    NSOperatingSystemVersion version = self.operatingSystemVersion;
     return [NSString stringWithFormat:@"%ld.%ld.%ld", (long)version.majorVersion, (long)version.minorVersion, (long)version.patchVersion];
 }
 
