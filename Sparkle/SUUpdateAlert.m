@@ -172,9 +172,10 @@
 - (BOOL)allowsAutomaticUpdates
 {
     BOOL allowAutoUpdates = YES; // Defaults to YES.
+#ifdef SPARKLE_PROJECT
     if ([self.host objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey])
         allowAutoUpdates = [self.host boolForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey];
-
+#endif
     return allowAutoUpdates;
 }
 
@@ -202,7 +203,9 @@
         
         [self.releaseNotesContainerView removeFromSuperview];
     }
-
+#ifndef SPARKLE_PROJECT
+    [self.automaticallyInstallUpdatesButton setHidden:YES];
+#endif
     [self.window center];
 }
 
