@@ -203,8 +203,7 @@
         
         [self.releaseNotesContainerView removeFromSuperview];
     }
-#ifdef SPARKLE_PROJECT
-#else
+#ifndef SPARKLE_PROJECT
     [self.automaticallyInstallUpdatesButton setHidden:YES];
 #endif
     [self.window center];
