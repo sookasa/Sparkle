@@ -242,7 +242,7 @@
         SULog(@"No suitable install is found in the update. The update will be rejected.");
         return NO;
     }
-    
+#ifdef SPARKLE_PROJECT
     // Modern packages are not distributed as bundles and are code signed differently than regular applications
     if (isPackage) {
         BOOL packageValidated = [SUDSAVerifier validatePath:downloadedPath withEncodedDSASignature:DSASignature withPublicDSAKey:publicDSAKey];
@@ -259,7 +259,7 @@
         SULog(@"No suitable bundle is found in the update. The update will be rejected.");
         return NO;
     }
-    
+
     SUHost *newHost = [[SUHost alloc] initWithBundle:newBundle];
     NSString *newPublicDSAKey = newHost.publicDSAKey;
     
@@ -272,7 +272,7 @@
             return NO;
         }
     }
-    
+
     BOOL updateIsCodeSigned = [SUCodeSigningVerifier applicationAtPathIsCodeSigned:installSourcePath];
 
     if (dsaKeysMatch) {
@@ -282,7 +282,7 @@
             return NO;
         }
     } else {
-#ifdef SPARKLE_PROJECT
+
         BOOL hostIsCodeSigned = [SUCodeSigningVerifier hostApplicationIsCodeSigned];
 
         NSString *dsaStatus = newPublicDSAKey ? @"has a new DSA key that doesn't match the previous one" : (publicDSAKey ? @"removes the DSA key" : @"isn't signed with a DSA key");
@@ -297,11 +297,8 @@
             SULog(@"The update archive %@, and the app is signed with a new Code Signing identity that doesn't match code signing of the original app: %@. At least one method of signature verification must be valid. The update will be rejected.", dsaStatus, error);
             return NO;
         }
-#else
-        //TODO: support proper code signature
-        return YES;
-#endif
     }
+#endif
 
     return YES;
 }
