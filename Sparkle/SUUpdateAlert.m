@@ -225,7 +225,7 @@
 #ifdef SPARKLE_PROJECT
     return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available!", nil), [self.host name]];
 #else
-    return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available.", nil), [self.host name]];
+    return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available", nil), [self.host name]];
 #endif
 }
 
