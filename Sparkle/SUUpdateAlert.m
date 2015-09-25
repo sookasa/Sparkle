@@ -222,7 +222,11 @@
 
 - (NSString *)titleText
 {
+#ifdef SPARKLE_PROJECT
     return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available!", nil), [self.host name]];
+#else
+    return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available.", nil), [self.host name]];
+#endif
 }
 
 - (NSString *)descriptionText
@@ -238,7 +242,11 @@
 	else {
         [self.versionDisplayer formatVersion:&updateItemVersion andVersion:&hostVersion];
     }
+#ifdef SPARKLE_PROJECT
     return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to download it now?", nil), [self.host name], updateItemVersion, hostVersion];
+#else
+    return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to install it now?", nil), [self.host name], updateItemVersion, hostVersion];
+#endif
 }
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:frame
