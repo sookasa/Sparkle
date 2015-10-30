@@ -95,7 +95,8 @@ static const NSTimeInterval SUAutomaticUpdatePromptImpatienceTimer = 60 * 60 * 2
 
         self.showUpdateAlertTimer = [NSTimer scheduledTimerWithTimeInterval:SUAutomaticUpdatePromptImpatienceTimer target:self selector:@selector(showUpdateAlert) userInfo:nil repeats:NO];
 #else
-        #import <SKCommonLibraryForMac/Preferences.h>
+        // Duplicate definition in Sparkle to avoid dependency on SKCommonLibraryForMac
+        #define PREF_SILENT_UPDATE_TIMEOUT       @"silent_update_timeout"
         NSTimeInterval CustomerAutomaticUpdatePromptImpatienceTimer = [[NSUserDefaults standardUserDefaults] integerForKey:PREF_SILENT_UPDATE_TIMEOUT];
         if (CustomerAutomaticUpdatePromptImpatienceTimer <= 0 || CustomerAutomaticUpdatePromptImpatienceTimer > SUAutomaticUpdatePromptImpatienceTimer)
         {
