@@ -91,7 +91,18 @@ static const NSTimeInterval SUAutomaticUpdatePromptImpatienceTimer = 60 * 60 * 2
     }
     else
     {
+#ifdef SPARKLE_PROJECT
+
         self.showUpdateAlertTimer = [NSTimer scheduledTimerWithTimeInterval:SUAutomaticUpdatePromptImpatienceTimer target:self selector:@selector(showUpdateAlert) userInfo:nil repeats:NO];
+#else
+        #import <SKCommonLibraryForMac/Preferences.h>
+        NSTimeInterval CustomerAutomaticUpdatePromptImpatienceTimer = [[NSUserDefaults standardUserDefaults] integerForKey:PREF_SILENT_UPDATE_TIMEOUT];
+        if (CustomerAutomaticUpdatePromptImpatienceTimer <= 0 || CustomerAutomaticUpdatePromptImpatienceTimer > SUAutomaticUpdatePromptImpatienceTimer)
+        {
+            CustomerAutomaticUpdatePromptImpatienceTimer = SUAutomaticUpdatePromptImpatienceTimer;
+        }
+        self.showUpdateAlertTimer = [NSTimer scheduledTimerWithTimeInterval:CustomerAutomaticUpdatePromptImpatienceTimer target:self selector:@selector(showUpdateAlert) userInfo:nil repeats:NO];
+#endif
 
         // At this point the driver is idle, allow it to be interrupted for user-initiated update checks.
         self.interruptible = YES;
