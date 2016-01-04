@@ -42,7 +42,7 @@
 
 - (NSString *)description { return [NSString stringWithFormat:@"%@ <%@, %@>", [self class], [self.host bundlePath], [self.host installationPath]]; }
 
-- (void)awakeFromNib
+- (void)windowDidLoad
 {
 #ifdef SPARKLE_PROJECT
     if ([self.host isBackgroundApplication]) {
