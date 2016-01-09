@@ -63,8 +63,8 @@ git remote add $name $url && \
 
 # pull it, and report result
 echo "-I- Pulling $url $branch:"
-git fetch $name $branch || { echo "-E- Failed to git fetch"; exit 1; }
-git merge $commit       || { echo "-E- Failed to git merge";  exit 1; }
+git fetch $name $branch              || { echo "-E- Failed to git fetch"; exit 1; }
+git merge $name/$branch HEAD $commit || { echo "-E- Failed to git merge"; exit 1; }
 
 rc=$? && test $rc -eq 0 && echo "-I- Pulled successfully" || echo "-E- Failed!"
 
