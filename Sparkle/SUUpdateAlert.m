@@ -171,15 +171,10 @@
 
 - (BOOL)allowsAutomaticUpdates
 {
-    BOOL allowAutoUpdates = YES; // Defaults to YES.
-#ifdef SPARKLE_PROJECT
-    if ([self.host objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey])
-        allowAutoUpdates = [self.host boolForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey];
-#endif
-    return allowAutoUpdates;
+    return self.host.allowsAutomaticUpdates;
 }
 
-- (void)awakeFromNib
+- (void)windowDidLoad
 {
     BOOL showReleaseNotes = [self showsReleaseNotes];
 
@@ -189,7 +184,7 @@
         [self.window setLevel:NSFloatingWindowLevel]; // This means the window will float over all other apps, if our app is switched out ?!
     }
 
-    if ([self.updateItem fileURL] == nil) {
+    if (self.updateItem.isInformationOnlyUpdate) {
         [self.installButton setTitle:SULocalizedString(@"Learn More...", @"Alternate title for 'Install Update' button when there's no download in RSS feed.")];
         [self.installButton setAction:@selector(openInfoURL:)];
     }
@@ -203,9 +198,21 @@
         
         [self.releaseNotesContainerView removeFromSuperview];
     }
+    
+    // When we show release notes, it looks ugly if the install buttons are not closer to the release notes view
+    // However when we don't show release notes, it looks ugly if the install buttons are too close to the description field. Shrugs.
+    if (showReleaseNotes && ![self allowsAutomaticUpdates]) {
+        NSLayoutConstraint *skipButtonToReleaseNotesContainerConstraint = [NSLayoutConstraint constraintWithItem:self.skipButton attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.releaseNotesContainerView attribute:NSLayoutAttributeBottom multiplier:1.0 constant:12.0];
+        
+        [self.window.contentView addConstraint:skipButtonToReleaseNotesContainerConstraint];
+        
+        [self.automaticallyInstallUpdatesButton removeFromSuperview];
+    }
+
 #ifndef SPARKLE_PROJECT
     [self.automaticallyInstallUpdatesButton setHidden:YES];
 #endif
+
     [self.window center];
 }
 
@@ -234,19 +241,26 @@
     NSString *updateItemVersion = [self.updateItem displayVersionString];
     NSString *hostVersion = [self.host displayVersion];
     // Display more info if the version strings are the same; useful for betas.
-    if (!self.versionDisplayer && [updateItemVersion isEqualToString:hostVersion] )
-	{
+    if (!self.versionDisplayer && [updateItemVersion isEqualToString:hostVersion] ) {
         updateItemVersion = [updateItemVersion stringByAppendingFormat:@" (%@)", [self.updateItem versionString]];
-        hostVersion = [hostVersion stringByAppendingFormat:@" (%@)", [self.host version]];
-    }
-	else {
+        hostVersion = [hostVersion stringByAppendingFormat:@" (%@)", self.host.version];
+    } else {
         [self.versionDisplayer formatVersion:&updateItemVersion andVersion:&hostVersion];
     }
+
+    // We display a slightly different summary depending on if it's an "info-only" item or not
+    NSString *finalString = nil;
+
+    if (self.updateItem.isInformationOnlyUpdate) {
+        finalString = [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to learn more about this update on the web?", @"Description text for SUUpdateAlert when the update informational with no download."), self.host.name, updateItemVersion, hostVersion];
+    } else {
 #ifdef SPARKLE_PROJECT
-    return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to download it now?", nil), [self.host name], updateItemVersion, hostVersion];
+        finalString = [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to download it now?", @"Description text for SUUpdateAlert when the update is downloadable."), self.host.name, updateItemVersion, hostVersion];
 #else
-    return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to install it now?", nil), [self.host name], updateItemVersion, hostVersion];
+        finalString = [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available--you have %@. Would you like to install it now?", @"Description text for SUUpdateAlert when the update is downloadable."), self.host.name, updateItemVersion, hostVersion];
 #endif
+    }
+    return finalString;
 }
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:frame
