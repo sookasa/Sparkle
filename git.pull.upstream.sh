@@ -9,24 +9,44 @@
 
 SCRIPT=`basename $0`
 DIR=`dirname $0`
-USAGE="Usage: $0 [upstream-url]"
-EXAMPLE="Example: $0 https://github.com/sookasa/upstream"
 
 # default configuration
 url=https://github.com/sparkle-project/Sparkle
 name=upstream
 branch=master
+commit=""
 
-# process input
-if [ $# -gt 1 ]; then
-    echo $USAGE "(default $url)"
-    echo $EXAMPLE
-    exit 1
-fi
+USAGE="Usage:\n\t $0 [url] [branch] [commit]"
+EXAMPLE="Example:\n\t $0 $url $branch $commit"
 
-if [ $# == 1 ]; then
-    url=$1
-fi
+while getopts ":h:u:b:c:" opt; do
+  case ${opt} in
+    h )
+        echo "$USAGE"
+        echo "$EXAMPLE"
+        exit 0
+        ;;
+    u )
+        url=$OPTARG
+        ;;
+    b )
+        branch=$OPTARG
+        ;;
+    c ) commit=$OPTARG
+        ;;
+    \? )
+        echo "Invalid option: $OPTARG" 1>&2
+        exit 1
+        ;;
+  esac
+done
+shift $((OPTIND -1))
+
+# print params
+echo "-I- url:    $url"
+echo "-I- branch: $branch"
+echo "-I- commit: $commit"
+echo ""
 
 # check prerequisites
 which -s git || { echo "-E- git not found"; exit 1; }
@@ -39,11 +59,13 @@ git remote remove $name &> /dev/null && \
 # add new remote branch as upstream
 git remote add $name $url && \
     { echo "-I- Added $name => $url"; } || \
-    { echo "-E- Failed to add: $url"; exit 2; }
+    { echo "-E- Failed to add: $url"; exit 1; }
 
 # pull it, and report result
 echo "-I- Pulling $url $branch:"
-git pull $name $branch
+git fetch $name $branch || { echo "-E- Failed to fetch"; exit 1; }
+git pull $commit        || { echo "-E- Failed to pull";  exit 1; }
+
 rc=$? && test $rc -eq 0 && echo "-I- Pulled successfully" || echo "-E- Failed!"
 
 # handover (git pull) result
