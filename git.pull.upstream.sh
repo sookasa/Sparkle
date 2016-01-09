@@ -19,7 +19,7 @@ commit=""
 USAGE="Usage:\n\t $0 [url] [branch] [commit]"
 EXAMPLE="Example:\n\t $0 $url $branch $commit"
 
-while getopts ":h:u:b:c:" opt; do
+while getopts ":hu:b:c:" opt; do
   case ${opt} in
     h )
         echo "$USAGE"
